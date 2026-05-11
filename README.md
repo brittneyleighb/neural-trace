@@ -24,7 +24,13 @@ chmod +x neural-trace.sh
 - `exit` — quit  
 
 ## AI Add-On (Optional)
-export OPENAI_API_KEY="your_key_here"
+Neural Trace can use AI for analysis. To enable it, set your OpenAI API key as an environment variable before running the tool:
+
+```bash
+export OPENAI_API_KEY="your_api_key_here"
+./neural-trace.sh
+
+This only lasts for your current terminal sesson. Do not hardcode your API key into the script and never commit your API key to Github.
 
 ## Notes
 
