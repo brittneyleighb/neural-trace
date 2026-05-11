@@ -11,6 +11,7 @@ sudo apt update
 sudo apt install jq curl ufw
 chmod +x neural-trace.sh
 ./neural-trace.sh
+```
 
 ## Commands
 
@@ -29,6 +30,7 @@ Neural Trace can use AI for analysis. To enable it, set your OpenAI API key as a
 ```bash
 export OPENAI_API_KEY="your_api_key_here"
 ./neural-trace.sh
+```
 
 This only lasts for your current terminal sesson. Do not hardcode your API key into the script and never commit your API key to Github.
 
