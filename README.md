@@ -2,6 +2,10 @@
 
 Neural Trace is an interactive Bash-based CLI tool that performs local system reconnaissance and translates raw OS signals (processes, network activity, open ports, uptime, etc.) into understandable security insights with guided recommendations.
 
+## Demo
+
+![Nueral Trace Screenshot](capture_neural-trace.png)
+
 ## Setup & Run
 
 ```bash
