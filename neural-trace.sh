@@ -8,6 +8,81 @@ RESET="\e[0m"
 
 REPORT_FILE="neural_trace_report.txt"
 
+OS_FAMILY="unknown"
+PACKAGE_MANAGER=""
+
+detect_platform() {
+  local distro_info=""
+
+  if [ -r /etc/os-release ]; then
+    # Values in /etc/os-release are supplied by the local operating system.
+    . /etc/os-release
+    distro_info="${ID:-} ${ID_LIKE:-}"
+  fi
+
+  case "$distro_info" in
+    *debian*|*ubuntu*)
+      OS_FAMILY="debian"
+      ;;
+    *rhel*|*fedora*|*centos*)
+      OS_FAMILY="redhat"
+      ;;
+  esac
+
+  case "$OS_FAMILY" in
+    debian)
+      command -v apt >/dev/null 2>&1 && PACKAGE_MANAGER="apt"
+      ;;
+    redhat)
+      if command -v dnf >/dev/null 2>&1; then
+        PACKAGE_MANAGER="dnf"
+      elif command -v yum >/dev/null 2>&1; then
+        PACKAGE_MANAGER="yum"
+      fi
+      ;;
+  esac
+}
+
+show_install_hint() {
+  local package="$1"
+
+  case "$PACKAGE_MANAGER" in
+    apt)
+      echo "sudo apt install $package"
+      ;;
+    dnf)
+      echo "sudo dnf install $package"
+      ;;
+    yum)
+      echo "sudo yum install $package"
+      ;;
+    *)
+      echo "Install '$package' with your system package manager."
+      ;;
+  esac
+}
+
+install_package() {
+  local package="$1"
+
+  case "$PACKAGE_MANAGER" in
+    apt)
+      sudo apt update && sudo apt install "$package"
+      ;;
+    dnf)
+      sudo dnf install "$package"
+      ;;
+    yum)
+      sudo yum install "$package"
+      ;;
+    *)
+      echo -e "${RED}[!] No supported package manager was detected.${RESET}"
+      return 1
+      ;;
+  esac
+}
+
+
 typewriter() {
   text="$1"
   delay="${2:-0.03}"
@@ -125,7 +200,7 @@ ai_analysis() {
   if ! command -v jq >/dev/null 2>&1; then
     echo -e "${RED}[!] jq is not installed.${RESET}"
     echo "Install it with:"
-    echo "sudo apt install jq"
+    show_install_hint "jq"
     return
   fi
 
@@ -216,13 +291,20 @@ security_check() {
   section "Security Check"
 
   if ! command -v ufw >/dev/null 2>&1; then
-    echo -e "${YELLOW}[!] UFW firewall is not installed.${RESET}"
-    echo -ne "Install UFW now? (y/n): "
-    read -r answer
+    if [ "$OS_FAMILY" = "debian" ]; then
+      echo -e "${YELLOW}[!] UFW firewall is not installed.${RESET}"
+      echo -ne "Install UFW now? (y/n): "
+      read -r answer
 
-    if [ "$answer" = "y" ]; then
-      sudo apt update
-      sudo apt install ufw
+      if [ "$answer" = "y" ]; then
+        install_package "ufw"
+      fi
+    elif [ "$OS_FAMILY" = "redhat" ]; then
+      echo -e "${YELLOW}[!] UFW is not available. firewalld support is not implemented yet.${RESET}"
+      echo "Firewall status was not changed."
+    else
+      echo -e "${YELLOW}[!] UFW is not installed and this Linux family is not recognized.${RESET}"
+      echo "Install and configure a firewall using your distribution's documentation."
     fi
   fi
 
@@ -317,6 +399,7 @@ interactive_mode() {
   done
 }
 
+detect_platform
 banner
 interactive_mode
 
