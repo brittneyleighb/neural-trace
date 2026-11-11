@@ -9,6 +9,7 @@ RESET="\e[0m"
 REPORT_FILE="neural_trace_report.txt"
 
 OS_FAMILY="unknown"
+OS_NAME="Unknown Linux distribution"
 PACKAGE_MANAGER=""
 
 detect_platform() {
@@ -18,6 +19,7 @@ detect_platform() {
     # Values in /etc/os-release are supplied by the local operating system.
     . /etc/os-release
     distro_info="${ID:-} ${ID_LIKE:-}"
+    OS_NAME="${PRETTY_NAME:-${NAME:-$OS_NAME}}"
   fi
 
   case "$distro_info" in
@@ -126,6 +128,7 @@ generate_report() {
     echo
 
     echo "[Kernel / OS]"
+    echo "Distribution: $OS_NAME"
     uname -a
     echo
 
